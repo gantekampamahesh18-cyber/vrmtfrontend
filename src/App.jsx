@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 
-const API_URL = "https://visitormanagement-1-m46e.onrender.com.onrender.com/api/visitors";
+const API_URL = "https://visitormanagement-1-m46e.onrender.com/api/visitors";
 
 const emptyForm = {
   name: "",
