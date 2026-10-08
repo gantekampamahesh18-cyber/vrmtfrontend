@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 
-const API_URL = "https://visitormanagement-1-m46e.onrender.com/api/visitors";
+const API_URL =
+  "https://visitormanagement-1-m46e.onrender.com/api/visitors";
 
 const emptyForm = {
   name: "",
@@ -19,6 +20,10 @@ function App() {
   const [page, setPage] = useState("dashboard");
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Prevent duplicate submissions
+  const submitLock = useRef(false);
 
   // Load visitors
   const loadVisitors = async () => {
@@ -39,7 +44,7 @@ function App() {
       console.error(error);
 
       alert(
-        "Could not connect to backend.\n\nMake sure Spring Boot is running on port 8080."
+        "Could not connect to backend.\n\nMake sure the backend is running."
       );
     } finally {
       setLoading(false);
@@ -83,6 +88,14 @@ function App() {
   const addVisitor = async (event) => {
     event.preventDefault();
 
+    // Stop multiple clicks
+    if (submitLock.current) {
+      return;
+    }
+
+    submitLock.current = true;
+    setSubmitting(true);
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
@@ -104,12 +117,22 @@ function App() {
     } catch (error) {
       console.error(error);
       alert("Could not add visitor.");
+    } finally {
+      submitLock.current = false;
+      setSubmitting(false);
     }
   };
 
   // Update Visitor
   const updateVisitor = async (event) => {
     event.preventDefault();
+
+    if (submitLock.current) {
+      return;
+    }
+
+    submitLock.current = true;
+    setSubmitting(true);
 
     try {
       const response = await fetch(`${API_URL}/${editingId}`, {
@@ -133,6 +156,9 @@ function App() {
     } catch (error) {
       console.error(error);
       alert("Could not update visitor.");
+    } finally {
+      submitLock.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -169,6 +195,8 @@ function App() {
     setPage("dashboard");
     setFormData(emptyForm);
     setEditingId(null);
+    setSubmitting(false);
+    submitLock.current = false;
   };
 
   // Visitor Form
@@ -278,8 +306,16 @@ function App() {
             />
           </div>
 
-          <button type="submit" className="submit-button">
-            {isEdit ? "Update Visitor" : "Save Visitor"}
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={submitting}
+          >
+            {submitting
+              ? "Saving..."
+              : isEdit
+              ? "Update Visitor"
+              : "Save Visitor"}
           </button>
         </form>
       </div>
@@ -377,7 +413,6 @@ function App() {
 
   return (
     <div className="app">
-
       {/* HEADER */}
       <header className="header">
         <h1>Digital Visitor Management System</h1>
@@ -404,14 +439,12 @@ function App() {
 
       {/* MAIN CONTENT */}
       <main className="content">
-
         {/* DASHBOARD */}
         {page === "dashboard" && (
           <>
             <h2>Visitor Management</h2>
 
             <div className="cards">
-
               <div className="card">
                 <h3>Visitors</h3>
 
@@ -435,7 +468,6 @@ function App() {
                   Add Visitor
                 </button>
               </div>
-
             </div>
           </>
         )}
@@ -448,7 +480,6 @@ function App() {
 
         {/* VIEW VISITORS */}
         {page === "visitors" && renderVisitors()}
-
       </main>
     </div>
   );
