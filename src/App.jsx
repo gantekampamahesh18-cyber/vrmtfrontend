@@ -490,9 +490,6 @@ function App() {
         <button type="button" onClick={() => loadVisitors(true)}>
           Visitors
         </button>
-        <button type="button" onClick={() => {}}>
-          Employees
-        </button>
       </nav>
 
       <main className="content">
